@@ -1,0 +1,75 @@
+name: Integration
+
+on:
+  pull_request:
+
+jobs:
+  integrate:
+    runs-on: ubuntu-latest
+    environment: Staging
+    permissions:
+      contents: read
+      pull-requests: write
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -r requirements.txt
+
+      - name: Download Model
+        run: | # Descarga el modelo desde azure con ayuda de las variables de entoorno
+          python scripts/download_model.py
+        env:
+          AZURE_TENANT_ID: ${{secrets.AZURE_TENANT_ID}}
+          AZURE_CLIENT_ID: ${{secrets.AZURE_CLIENT_ID}}
+          AZURE_CLIENT_SECRET: ${{secrets.AZURE_CLIENT_SECRET}}
+          EXPERIMENT_NAME: ${{ vars.EXPERIMENT_NAME }}
+          MLFLOW_URL: ${{ vars.MLFLOW_URL }}
+
+      - name: Download and extract dataset
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          mkdir -p ./data/raw
+
+          curl -fL \
+            "https://archive.ics.uci.edu/static/public/20/census+income.zip" \
+            -o /tmp/census-income.zip
+
+          unzip -o /tmp/census-income.zip -d ./data/raw
+
+          rm /tmp/census-income.zip
+
+          echo "Dataset extracted to ./data/raw"
+          find ./data/raw -maxdepth 2 -type f     
+
+      - name: Run tests and save exit code
+        id: tests
+        run: |
+            mkdir -p test-results
+            PYTHONPATH=./src pytest tests/ --capture=tee-sys --cov=model --cov-report=term --cov-report=html --junitxml=test-results/results.xml > test-results/results.log
+      
+      - name: Comment test results and coverage on PR
+        uses: actions/github-script@v7
+        if: always()
+        with:
+          script: |
+            const fs = require('fs');
+            const results = fs.readFileSync('test-results/results.log', 'utf8');
+            const truncated = results.length > 65000 ? results.slice(0, 65000) + '\\n...TRUNCATED...' : results;
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: `### 🧪 Test Results with Coverage\n\n\`\`\`\n${truncated}\n\`\`\``
+            });
