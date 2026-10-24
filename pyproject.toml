@@ -7,7 +7,19 @@ authors = [
     { name = "Orlando Quinones", email = "oquinones1@gmail.com" }
 ]
 requires-python = ">=3.12"
-dependencies = []
+dependencies = [
+    "azure-identity>=1.26.0",
+    "azure-storage-blob>=12.27.1",
+    "azureml-mlflow>=1.62.0.post6",
+    "joblib~=1.5.0",
+    "mlflow~=2.22.0",
+    "mlflow-skinny~=2.22.0",
+    "numpy~=2.2.6",
+    "pandas~=2.2.3",
+    "pytest~=8.3.5",
+    "pytest-cov~=4.0.0",
+    "scikit-learn~=1.6.1",
+]
 
 [project.scripts]
 grupo01-pontia-mlops-tutorial = "grupo01_pontia_mlops_tutorial:main"
