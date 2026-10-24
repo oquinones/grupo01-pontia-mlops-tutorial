@@ -1,5 +1,5 @@
 name: Integration
-
+run-name: Integration - Grupo01 - ejecucion - ${{ github.run_number }}
 on:
   pull_request:
 
