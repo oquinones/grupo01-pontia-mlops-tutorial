@@ -40,18 +40,18 @@ jobs:
         run: |
           set -euo pipefail
 
-          mkdir -p ./data/raw
+          mkdir -p ./data
 
           curl -fL \
             "https://archive.ics.uci.edu/static/public/20/census+income.zip" \
             -o /tmp/census-income.zip
 
-          unzip -o /tmp/census-income.zip -d ./data/raw
+          unzip -o /tmp/census-income.zip -d ./data
 
           rm /tmp/census-income.zip
 
-          echo "Dataset extracted to ./data/raw"
-          find ./data/raw -maxdepth 2 -type f     
+          echo "Dataset extracted to ./data"
+          find ./data -maxdepth 2 -type f     
 
       - name: Run tests and save exit code
         id: tests
@@ -61,7 +61,7 @@ jobs:
       
       - name: Comment test results and coverage on PR
         uses: actions/github-script@v7
-        if: always()
+        # if: always()
         with:
           script: |
             const fs = require('fs');
