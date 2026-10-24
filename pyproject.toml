@@ -1,0 +1,17 @@
+[project]
+name = "grupo01-pontia-mlops-tutorial"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+authors = [
+    { name = "Orlando Quinones", email = "oquinones1@gmail.com" }
+]
+requires-python = ">=3.12"
+dependencies = []
+
+[project.scripts]
+grupo01-pontia-mlops-tutorial = "grupo01_pontia_mlops_tutorial:main"
+
+[build-system]
+requires = ["uv_build>=0.13.1,<0.14.0"]
+build-backend = "uv_build"
