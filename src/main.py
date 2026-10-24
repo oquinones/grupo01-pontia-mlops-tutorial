@@ -19,7 +19,7 @@ logging.basicConfig(
     format="%(asctime)s [%(levelname)s] %(message)s",
     handlers=[logging.FileHandler("training.log"), logging.StreamHandler()],
 )
-logger = logging.getLogger("grupo01-adult-income")
+logger = logging.getLogger("adult-income")
 
 run_name = f"run-{datetime.now().strftime('%Y%m%d-%H%M%S')}"
 
@@ -42,16 +42,16 @@ def main():
     logger.info(f"System info: {platform.platform()}")
 
     train_df, test_df = load_data(DATA_DIR / "adult.data", DATA_DIR / "adult.test")
-    X_train, X_test, y_train, y_test, scaler, encoders = preprocess_data(
+    x_train, x_test, y_train, y_test, scaler, encoders = preprocess_data(
         train_df, test_df
     )
 
     with mlflow.start_run(run_name=run_name) as run:
         start_time = time.time()
-        model = train_model(X_train, y_train)
+        model = train_model(x_train, y_train)
         elapsed = time.time() - start_time
         logger.info(f"Model training complete. Time taken: {elapsed:.2f} seconds")
-        evaluate(model, X_test, y_test)
+        evaluate(model, x_test, y_test)
 
         # Save and log model with metadata
         model_path = MODEL_DIR / "model.pkl"
@@ -78,7 +78,7 @@ def main():
             model_uri=f"runs:/{run.info.run_id}/model", name=EXPERIMENT_NAME
         )
 
-        with open("run_id.txt", "w") as f:
+        with Path("run_id.txt").open("w", encoding="utf-8") as f:
             f.write(run.info.run_id)
 
         logger.info(f"MLflow run ID: {run.info.run_id}")

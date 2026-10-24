@@ -18,6 +18,7 @@ dependencies = [
     "pandas~=2.2.3",
     "pytest~=8.3.5",
     "pytest-cov~=4.0.0",
+    "ruff>=0.17.2",
     "scikit-learn~=1.6.1",
 ]
 
