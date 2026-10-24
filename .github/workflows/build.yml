@@ -1,5 +1,5 @@
 name: Build Model
-run-name: Buil Model and Trainig - Grupo01 - {{ github.id }}
+run-name: Buil Model and Trainig - Grupo01 - ${{ github.run_number }}
 on:
   push:
     branches:
