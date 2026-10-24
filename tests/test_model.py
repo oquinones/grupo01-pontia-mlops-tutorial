@@ -1,20 +1,24 @@
+from pathlib import Path
+
+import joblib
 import numpy as np
 import pytest
-from src.model import train_model
 from sklearn.ensemble import RandomForestClassifier
-from pathlib import Path
-import joblib
 
+from src.model import train_model
 
-MODEL_PATH = Path("models/model/model.pkl")
+MODEL_PATH = Path("models/model.pkl")
+
 
 @pytest.fixture
 def model():
     return joblib.load(MODEL_PATH)
 
+
 def test_train_model_returns_model(model):
     assert isinstance(model, RandomForestClassifier)
     assert hasattr(model, "predict")
+
 
 def test_train_model_logs(caplog):
     X = np.random.rand(10, 4)
