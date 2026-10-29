@@ -208,9 +208,9 @@ En *Settings → Environments → Staging* hay que definir:
 
 | Tipo | Nombre | Uso |
 |---|---|---|
-| Secret | `AZURE_TENANT_ID` | Autenticación del service principal en Azure |
-| Secret | `AZURE_CLIENT_ID` | Autenticación del service principal en Azure |
-| Secret | `AZURE_CLIENT_SECRET` | Autenticación del service principal en Azure |
+| Secret | `AZURE_TENANT_ID` | Tenant del service principal en Azure |
+| Secret | `AZURE_CLIENT_ID` | Client Id del service principal en Azure |
+| Secret | `AZURE_CLIENT_SECRET` | Client secret del service principal en Azure |
 | Variable | `MLFLOW_URL` | Tracking URI de MLflow del workspace de Azure ML |
 | Variable | `EXPERIMENT_NAME` | Experimento y nombre del modelo registrado |
 
@@ -221,3 +221,64 @@ registrar runs y modelos (build) y para descargarlos (integración).
 > el workflow `build.yml` debe haberse ejecutado al menos una vez (o el
 > modelo debe haberse registrado manualmente) antes de que los tests de las
 > PRs puedan pasar.
+
+## CD - Desplieque continuo (GitHub Actions)
+
+El repositorio define un workflow en [.github/workflows/](.github/workflows/)
+que se ejecutara a traves de Git Hub Actions: ** El Despliegue continuo crea primero una imagen en Docker Hub que luego sera desplegado en una aplicación de contenedor de Azure Container Apps.**,
+el workflow se ejecuta a traves de un push a la rama `main` o presionando el boton generado con el `workflow dispath`.
+
+```
+Push a main o 
+Run workflow ───► deploy.yml ───────►  Configura Docker Buildx
+                                       Login a Docker Hub.
+                                       Construye la imagen del contenedor con Dockerfile y la sube a Docker Hub.
+                                       Login a Azure usando OIDC (OpenID Connect)
+                                       Verifica la existencia y configuración de Azure Container Apps.
+                                       Configura los secretos en Azure Container Apps.
+                                       Configura el registro de contenedores que utilizará la Container App.
+                                       Despliega la imagen publicada en Docker Hub actualizando la Container App.
+```
+
+El workflow se ejecuta en `ubuntu-latest` con Python 3.12, instalando las dependencias desde `Dockerfile` y corriendo la aplicacion con un `CMD`. La app se encuentra en un contexto de construccion con el nombre `deployment`.
+Las variables y secretos de entorno seran obtenidas desde el environment **`Staging`** de GitHub.
+
+### Deploy Model ([deploy.yml](.github/workflows/deploy.yml))
+
+- **Disparador:** `push` a la rama `main`, `Run workflow` boton en Git Hub actions.
+- **Permisos:** `contents: write`.
+- **Pasos:**
+  1. **Checkout repository:** Descarga (clona) el contenido del repositorio de GitHub en la máquina virtual donde se ejecuta el workflow.
+  2. **Setup Docker Buildx:** Configura Docker Buildx.
+  3. **Login to Docker Hub:** Login a Docker Hub.
+  4. **Build and push image:** Construye la imagen del contenedor con Dockerfile y la sube al repositorio de Docker Hub
+  5. **Login to Azure:** Login a Azure usando OIDC (OpenID Connect).
+  6. **Verify Container App:** Verifica la existencia y configuración de Azure Container Apps.
+  7. **Configure application secrets:** Configura y guarda los secretos en Azure Container Apps.
+  8. **Configure private Docker Hub registry:** Configura el registro de contenedores que utilizará la Container App.
+  9. **Deploy to Azure Container Apps:** Despliega la ultima imagen publicada en Docker Hub actualizando la Azure Container App.
+  
+
+### Configuración necesaria en GitHub
+
+En *Settings → Environments → Staging* hay que definir:
+
+| Tipo | Nombre | Uso |
+|---|---|---|
+| Secret | `AZURE_TENANT_ID` | Tenant del service principal en Azure |
+| Secret | `AZURE_CLIENT_ID` | Client Id del service principal en Azure |
+| Secret | `AZURE_CLIENT_SECRET` | Client secret del service principal en Azure |
+| Secret | `AZURE_SUBSCRIPTION_ID` | Subscripcion Id del service principal en Azure |
+| Secret | `DOCKERHUB_TOKEN` | Token del docker hub a utilizarse |
+| Secret | `DOCKERHUB_User` | Nombre de usuario del docker hub a usarse |
+| Variable | `MLFLOW_URL` | Tracking URI de MLflow del workspace de Azure ML |
+| Variable | `EXPERIMENT_NAME` | Experimento y nombre del modelo registrado |
+| Variable | `CONTAINER_APP` | Nombre del Contenedor de la aplicacion en Azure |
+| Variable | `RESOURCE_GROUP` | Nombre del recurso de grupo en Azure |
+| Variable | `IMAGE_NAME` | Nombre de la imagen en Docker Hub |
+| Variable | `DOCKERHUB_REPO` | Nombre del repositorio de Docker HUB |
+
+El service principal necesita permisos sobre el workspace de Azure para
+autenticarse, verificar el contenedor de la aplicacion, configurar y guardar los secretos del contenedor de la aplicacion, configurar el registro de contenedores y desplegar la imagen en Azure Container APP .
+
+
