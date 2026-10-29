@@ -23,13 +23,13 @@ Predecir si una persona gana más de 50K $/año (`income > 50K`) a partir de var
 │   └── workflows/
 │       ├── build.yml        # CI: entrena y registra el modelo en cada push a main
 │       └── integration.yml  # CI: tests + cobertura en cada pull request al repo
-|       └── deploy.yml       🔴# CD: empaqueta y despliega la app en Azure Container Apps
+|       └── deploy.yml       # CD: empaqueta y despliega la app en Azure Container Apps
 ├── src/
 │   ├── data_loader.py       # Carga, limpieza, LabelEncoder + StandardScaler
 │   ├── model.py             # Entrenamiento del RandomForestClassifier
 │   ├── evaluate.py          # Accuracy y classification report
 │   └── main.py              # Orquestación + tracking y registro en MLflow
-├── deployment/             🔴 # Archivos para Docker y despliegue
+├── deployment/              # Archivos para Docker y despliegue
 ├── scripts/
 │   └── download_model.py    # Descarga la última versión del modelo registrado
 ├── tests/                   # Tests unitarios (pytest)
@@ -79,7 +79,7 @@ Los scripts leen la configuración de variables y secrets de entorno. En GitHub 
 | **Secret** | `AZURE_CLIENT_SECRET` | Secreto del service principal (solo Azure ML) | *Confidencial* | `build.yml`, `integration.yml` |
 | **Variable** | `DOCKERHUB_REPO` | Repositorio o namespace dentro de Docker Hub | `tu-usuario` | `deploy.yml` |
 | **Variable** | `CONTAINER_APP` | Nombre de la aplicación contenedora en Azure | `grupo01-devops-0926` | `deploy.yml` |
-| **Variable** | `AZURE_RESOURCE_GROUP` | Nombre del grupo de recursos de Azure | `rg-albertog-devops` | `deploy.yml` |
+| **Variable** | `RESOURCE_GROUP` | Nombre del grupo de recursos de Azure | `rg-albertog-devops` | `deploy.yml` |
 | **Variable** | `IMAGE_NAME` | Nombre base de la imagen del contenedor | `model-app` | `deploy.yml` |
 | **Variable** | `MLFLOW_URL` | Tracking URI de MLflow (local o Azure ML) | `http://localhost:5000/` | `integration.yml`, `build.yml` |
 | **Variable** | `EXPERIMENT_NAME` | Nombre del experimento y del modelo registrado | `grupo01-adult-income` | `integration.yml`, `build.yml` |
@@ -203,7 +203,7 @@ y usan el environment **`Staging`** de GitHub.
      (informe en terminal y HTML) y resultados JUnit en
      `test-results/results.xml`. La salida se guarda en
      `test-results/results.log`.
-  6. **Comment test results:** con `actions/github-script` publica el
+  6. **Comment test results and coverage on PR:** con `actions/github-script` publica el
      contenido de `results.log` (truncado a 65 000 caracteres) como
      comentario en la PR. Se ejecuta siempre (`if: always()`), también
      cuando fallan los tests.
