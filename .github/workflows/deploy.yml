@@ -60,7 +60,7 @@ jobs:
             --name "$CONTAINER_APP" \
             --resource-group "$RESOURCE_GROUP" \
             --subscription "${{ secrets.AZURE_SUBSCRIPTION_ID }}" \
-            --query "{name:name, resourceGroup:resourceGroup, id:id}" \
+            --query "{name:name, resourceGroup:resource-group, id:id}" \
             --output json
 
         # Configura y guarda los secretos de la aplicación de contenedor en Azure Container Apps 
